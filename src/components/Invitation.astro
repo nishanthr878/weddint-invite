@@ -1,0 +1,488 @@
+---
+import invite from "../data/invite.js";
+
+interface Props { lang: "en" | "kn" }
+const { lang } = Astro.props;
+
+const c = invite.common;
+const t = invite[lang];
+const ui = t.ui;
+const { date } = c;
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const monthName = t.months[date.month - 1];
+const dateText = t.dateFmt.replace("{m}", monthName).replace("{d}", String(date.day)).replace("{y}", String(date.year));
+const wd = (d: number) => t.weekdays[new Date(Date.UTC(date.year, date.month - 1, d)).getUTCDay()];
+const startISO = `${date.year}-${pad(date.month)}-${pad(date.day)}T${c.reception.startTime}:00${c.utcOffset}`;
+
+// Monday-first calendar grid
+const firstDow = (new Date(Date.UTC(date.year, date.month - 1, 1)).getUTCDay() + 6) % 7;
+const daysInMonth = new Date(Date.UTC(date.year, date.month, 0)).getUTCDate();
+const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+
+const title = `${t.groom.first} & ${t.bride.first}`;
+const client = {
+  guestDefault: ui.guestDefault,
+  days: ui.days, hours: ui.hours, min: ui.min, sec: ui.sec,
+  waMsg: ui.waMsg, waGuest: ui.waGuest, contact: t.contactName, calSummary: ui.calSummary,
+};
+const fontsHref =
+  "https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:wght@400;500&family=Pinyon+Script&family=Noto+Serif+Kannada:wght@400;600;700&display=swap";
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={`${title} - ${dateText}`} />
+    <meta property="og:title" content={title} />
+    <link rel="alternate" hreflang="en" href="/" />
+    <link rel="alternate" hreflang="kn" href="/kn/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href={fontsHref} rel="stylesheet" />
+  </head>
+  <body class="locked" data-start={startISO}>
+    <!-- ============ GATE ============ -->
+    <div id="gate" class="gate">
+      <span class="petal" style="left:10%;animation-delay:0s">&#10043;</span>
+      <span class="petal" style="left:30%;animation-delay:2s">&#10043;</span>
+      <span class="petal" style="left:55%;animation-delay:4s">&#10043;</span>
+      <span class="petal" style="left:75%;animation-delay:1s">&#10043;</span>
+      <span class="petal" style="left:90%;animation-delay:3s">&#10043;</span>
+      <a class="lang sw" href={t.otherPath}>{ui.switchLabel}</a>
+      <div class="gate-card">
+        <div class="img corner tl" style="background-image:url('/images/flowers-corner.png')"></div>
+        <div class="img corner br" style="background-image:url('/images/flowers-corner.png')"></div>
+        <div class="heart">&#10084;</div>
+        <div class="script small-names">{t.groom.first}<br /><i>&amp;</i><br />{t.bride.first}</div>
+        <div class="rule"><i></i><b>&#10086;</b><i></i></div>
+        <p class="date-s">{dateText}</p>
+        <p class="invites">{ui.cordially}</p>
+        <p id="guest" class="chip">{ui.guestDefault}</p>
+        <p class="celebrate">{ui.celebrate}</p>
+        <button id="openBtn" class="btn">{ui.open}</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <!-- ============ HERO ============ -->
+      <section class="hero">
+        <div class="img bells" style="background-image:url('/images/bells.png')"></div>
+        <div class="img bougain" style="background-image:url('/images/bougainvillea.png')"></div>
+        <svg class="arch" viewBox="0 0 300 440" fill="none" stroke="#b98a3e" stroke-width="4" stroke-linecap="round">
+          <path d="M22 440 V200 C22 160 48 150 42 122 C38 96 62 90 74 74 C90 54 114 58 126 40 C138 22 150 6 150 6 C150 6 162 22 174 40 C186 58 210 54 226 74 C238 90 262 96 258 122 C252 150 278 160 278 200 V440" />
+        </svg>
+        <div class="emblem">&#2384;</div>
+        <h1 class="script big-names">
+          <span>{t.groom.first}</span>
+          <em>&amp;</em>
+          <span>{t.bride.first}</span>
+        </h1>
+        <div class="img palace" style="background-image:url('/images/palace-lake.png')"></div>
+      </section>
+
+      <!-- ============ CEREMONY INFO ============ -->
+      <section class="sec info">
+        <div class="img palace-bg" style="background-image:url('/images/palace-faded.png')"></div>
+        <div class="img flower-l" style="background-image:url('/images/flowers-left.png')"></div>
+        <div class="img flower-r" style="background-image:url('/images/flowers-right.png')"></div>
+
+        <div class="head">
+          <svg class="corner-o l" viewBox="0 0 60 60"><use href="#corner" /></svg>
+          <svg class="flourish" viewBox="0 0 200 40"><use href="#flourish" /></svg>
+          <svg class="corner-o r" viewBox="0 0 60 60"><use href="#corner" /></svg>
+        </div>
+        <h2>{ui.ceremonyInfo}</h2>
+
+        <div class="parents">
+          <div>{t.parents.groom[0]}<br /><b>{t.parents.groom[1]}</b><br /><b>{t.parents.groom[2]}</b></div>
+          <div>{t.parents.bride[0]}<br /><b>{t.parents.bride[1]}</b><br /><b>{t.parents.bride[2]}</b></div>
+        </div>
+
+        <p class="together">{ui.together1}<br />{ui.together2}</p>
+        <p class="serif-name">{t.groom.full}</p>
+        <p class="amp">&amp;</p>
+        <p class="serif-name">{t.bride.full}</p>
+
+        {
+          c.events.map((e, i) => (
+            <div class="event">
+              <p class="ev-title">{t.events[i].title}</p>
+              <p class="ev-venue">{t.events[i].venue}</p>
+              <p class="ev-at">{ui.at} {e.time}</p>
+              <p class="ev-date">
+                <span>{wd(e.day).toUpperCase()}</span>
+                <i></i>
+                <strong>{e.day}</strong>
+                <i></i>
+                <span>{monthName.toUpperCase()}</span>
+              </p>
+              <p class="ev-year">{date.year}</p>
+            </div>
+          ))
+        }
+      </section>
+
+      <!-- ============ GALLERY ============ -->
+      <section class="sec">
+        <svg class="flourish" viewBox="0 0 200 40"><use href="#flourish" /></svg>
+        <h2>{ui.photoGallery}</h2>
+        <div class="cf" id="cf">
+          {c.gallery.map((src) => <div class="cf-item" style={`background-image:url('${src}')`}></div>)}
+          <button class="cf-btn l" id="prev" aria-label="Previous">&#8249;</button>
+          <button class="cf-btn r" id="next" aria-label="Next">&#8250;</button>
+        </div>
+        <p id="cfCount" class="count-s"></p>
+      </section>
+
+      <!-- ============ RECEPTION INFO ============ -->
+      <section class="sec info">
+        <div class="img flower-l" style="background-image:url('/images/flowers-left.png')"></div>
+        <div class="img flower-r" style="background-image:url('/images/flowers-right.png')"></div>
+        <div class="head">
+          <svg class="corner-o l" viewBox="0 0 60 60"><use href="#corner" /></svg>
+          <svg class="flourish" viewBox="0 0 200 40"><use href="#flourish" /></svg>
+          <svg class="corner-o r" viewBox="0 0 60 60"><use href="#corner" /></svg>
+        </div>
+        <h2>{ui.receptionInfo}</h2>
+        <p class="sub-h">{ui.receptionAt}</p>
+        <p class="time-big">{c.reception.reception}</p>
+        <p class="ev-date">
+          <span>{wd(date.day).toUpperCase()}</span><i></i><strong>{date.day}</strong><i></i><span>{monthName.toUpperCase()}</span>
+        </p>
+        <p class="ev-year">{date.year}</p>
+
+        <div class="two-times">
+          <div><small>{ui.welcome}</small><b>{c.reception.welcome}</b></div>
+          <div><small>{ui.reception}</small><b>{c.reception.reception}</b></div>
+        </div>
+
+        <p class="cd-label">{ui.countdown}</p>
+        <p id="countdown" class="cd">--</p>
+
+        <div class="cal">
+          <p class="cal-title">{monthName} {date.year}</p>
+          <div class="cal-grid">
+            {t.dow.map((d) => <span class="dow">{d}</span>)}
+            {cells.map((cell) => <span class={cell === date.day ? "day on" : "day"}>{cell ?? ""}</span>)}
+          </div>
+        </div>
+
+        <a id="ics" class="link" href="#">{ui.addCal}</a><br />
+        <a id="rsvp" class="btn" href="#" data-wa={c.whatsapp}>{ui.confirm}</a>
+      </section>
+
+      <!-- ============ VENUE ============ -->
+      <section class="sec">
+        <h2 class="venue-h">{t.venue.title}</h2>
+        <p class="v-name">{t.venue.name}</p>
+        <p class="v-city">{t.venue.city}</p>
+        <iframe class="map" src={c.mapEmbed} loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Map"></iframe>
+        <a class="link" href={c.directions} target="_blank" rel="noopener">&#10148; {ui.getDirections}</a>
+        <svg class="flourish mt" viewBox="0 0 200 40"><use href="#flourish" /></svg>
+      </section>
+
+      <!-- ============ DRESS CODE ============ -->
+      <!-- <section class="sec">
+        <h2>{ui.dressCode}</h2>
+        <p class="v-city">{t.dressText}</p>
+        <div class="swatches">
+          {c.dressColors.map((col) => <span style={`background:${col}`}></span>)}
+        </div>
+      </section> -->
+
+      <!-- ============ SCHEDULE ============ -->
+      <section class="sec">
+        <h2>{ui.schedule}</h2>
+        <ul class="timeline">
+          {c.scheduleTimes.map((time, i) => (
+            <li><time>{time}</time><i></i><span>{t.scheduleLabels[i]}</span></li>
+          ))}
+        </ul>
+      </section>
+
+      <!-- ============ GUESTBOOK ============ -->
+      <!-- <section class="sec">
+        <h2>{ui.guestbook}</h2>
+        <form id="gb" class="gb">
+          <input id="gbName" placeholder={ui.namePh} />
+          <textarea id="gbMsg" rows="4" placeholder={ui.wishPh} required></textarea>
+          <button class="btn" type="submit">{ui.sendWishes}</button>
+        </form>
+      </section> -->
+
+      <footer>
+        {ui.withLove} {t.groom.first} &amp; {t.bride.first}<br />
+        <a class="lang sw" href={t.otherPath}>{ui.switchLabel}</a>
+      </footer>
+    </div>
+
+    {
+      c.music && (
+        <>
+          <audio id="bgm" src={c.music} loop preload="none"></audio>
+          <button id="musicBtn" class="music" aria-label="Toggle music">&#9835;</button>
+        </>
+      )
+    }
+
+    <!-- reusable ornaments -->
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <g id="corner" fill="none" stroke="#b98a3e" stroke-width="1.4">
+          <path d="M2 58 V2 H58" />
+          <path d="M8 52 V8 H52" />
+          <path d="M14 14 C26 14 26 26 14 26 C20 26 24 20 20 17" />
+          <path d="M22 8 C34 10 36 22 28 26" />
+          <path d="M8 22 C10 34 22 36 26 28" />
+          <circle cx="12" cy="12" r="2" fill="#b98a3e" />
+        </g>
+        <g id="flourish" fill="none" stroke="#b98a3e" stroke-width="1.6" stroke-linecap="round">
+          <path d="M100 6 C92 14 92 22 100 26 C108 22 108 14 100 6 Z" />
+          <path d="M100 26 V34" />
+          <path d="M96 20 C84 20 80 28 70 28 C58 28 54 20 44 24 C36 27 30 30 20 28" />
+          <path d="M104 20 C116 20 120 28 130 28 C142 28 146 20 156 24 C164 27 170 30 180 28" />
+          <circle cx="12" cy="28" r="2" fill="#b98a3e" /><circle cx="188" cy="28" r="2" fill="#b98a3e" />
+        </g>
+      </defs>
+    </svg>
+
+    <script is:inline type="application/json" id="i18n" set:html={JSON.stringify(client)}></script>
+
+    <script>
+      const q = (s: string) => document.querySelector(s) as HTMLElement | null;
+      const L = JSON.parse(document.getElementById("i18n")?.textContent || "{}");
+      const to = (new URLSearchParams(location.search).get("to") || "").trim().slice(0, 60);
+
+      // Keep ?to=Name when switching language
+      document.querySelectorAll<HTMLAnchorElement>("a.sw").forEach((a) => (a.href += location.search));
+
+      // Guest name
+      const g = q("#guest"); if (g) g.textContent = to || L.guestDefault;
+      const gbName = q("#gbName") as HTMLInputElement | null; if (gbName && to) gbName.value = to;
+
+      // Music: starts on the Open click (browsers only allow audio after a tap)
+      const bgm = document.getElementById("bgm") as HTMLAudioElement | null;
+      const mbtn = q("#musicBtn");
+      mbtn?.classList.add("off");
+      mbtn?.addEventListener("click", () => {
+        if (!bgm) return;
+        if (bgm.paused) { bgm.play().then(() => mbtn.classList.remove("off")).catch(() => {}); }
+        else { bgm.pause(); mbtn.classList.add("off"); }
+      });
+
+      // Open gate
+      q("#openBtn")?.addEventListener("click", () => {
+        bgm?.play().then(() => mbtn?.classList.remove("off")).catch(() => {});
+        const gate = q("#gate");
+        gate?.classList.add("open");
+        document.body.classList.remove("locked");
+        setTimeout(() => gate?.remove(), 1200);
+      });
+
+      // Countdown
+      const start = new Date(document.body.dataset.start || "").getTime();
+      const cd = q("#countdown");
+      const tick = () => {
+        const d = Math.max(0, start - Date.now());
+        const D = Math.floor(d / 864e5), H = Math.floor(d / 36e5) % 24, M = Math.floor(d / 6e4) % 60, S = Math.floor(d / 1e3) % 60;
+        if (cd) cd.textContent = `${D} ${L.days} ${H} ${L.hours} ${M} ${L.min} ${S} ${L.sec}`;
+      };
+      tick(); setInterval(tick, 1000);
+
+      // Coverflow gallery
+      const items = [...document.querySelectorAll<HTMLElement>(".cf-item")];
+      let cur = Math.floor(items.length / 2);
+      const render = () => {
+        items.forEach((el, i) => {
+          const o = i - cur, a = Math.abs(o);
+          el.style.transform = `translateX(${o * 55}%) rotateY(${-o * 35}deg) scale(${1 - Math.min(a, 3) * 0.1})`;
+          el.style.zIndex = String(20 - a);
+          el.style.opacity = a > 3 ? "0" : String(1 - a * 0.18);
+        });
+        const cn = q("#cfCount"); if (cn) cn.textContent = `${cur + 1} / ${items.length}`;
+      };
+      const go = (n: number) => { cur = Math.min(items.length - 1, Math.max(0, n)); render(); };
+      q("#prev")?.addEventListener("click", () => go(cur - 1));
+      q("#next")?.addEventListener("click", () => go(cur + 1));
+      let sx = 0;
+      const cf = q("#cf");
+      cf?.addEventListener("touchstart", (e) => (sx = (e as TouchEvent).touches[0].clientX), { passive: true });
+      cf?.addEventListener("touchend", (e) => {
+        const dx = (e as TouchEvent).changedTouches[0].clientX - sx;
+        if (Math.abs(dx) > 40) go(cur + (dx < 0 ? 1 : -1));
+      });
+      render();
+
+      // Add to calendar (.ics)
+      const ics = q("#ics") as HTMLAnchorElement | null;
+      if (ics && !isNaN(start)) {
+        const f = (t: number) => new Date(t).toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+        const body = ["BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT", `DTSTART:${f(start)}`, `DTEND:${f(start + 4 * 36e5)}`, `SUMMARY:${L.calSummary}`, "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+        ics.href = "data:text/calendar;charset=utf8," + encodeURIComponent(body);
+        ics.setAttribute("download", "wedding.ics");
+      }
+
+      // RSVP + guestbook via WhatsApp (static site, no backend)
+      const rsvp = q("#rsvp") as HTMLAnchorElement | null;
+      if (rsvp) {
+        const text = (L.waMsg as string).replace("{contact}", L.contact).replace("{name}", to || L.waGuest);
+        rsvp.href = `https://wa.me/${rsvp.dataset.wa}?text=${encodeURIComponent(text)}`;
+        rsvp.target = "_blank";
+      }
+      q("#gb")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const name = (q("#gbName") as HTMLInputElement).value || L.waGuest;
+        const msg = (q("#gbMsg") as HTMLTextAreaElement).value;
+        window.open(`https://wa.me/${rsvp?.dataset.wa}?text=${encodeURIComponent(`${name}: ${msg}`)}`, "_blank");
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --bg: #f7e3cd;      /* cream page background (measured from the original) */
+    --bg-d: #ecd2b3;    /* outside the column on desktop */
+    --pink: #640e1b;    /* headings + names: deep maroon */
+    --tan: #6b3b2a;     /* body text */
+    --gold: #b98a3e;    /* ornaments */
+    --wine: #640e1b;    /* buttons, footer */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg-d); color: var(--tan); font-family: "EB Garamond", serif; font-size: 1.05rem; text-align: center; }
+  body.locked { overflow: hidden; height: 100vh; }
+  .page { max-width: 560px; margin: 0 auto; background: var(--bg); overflow: hidden; }
+  .script { font-family: "Pinyon Script", cursive; font-weight: 400; color: var(--pink); }
+  h2 { font-family: "Cinzel", serif; font-weight: 700; color: var(--pink); letter-spacing: .08em; text-transform: uppercase; font-size: 1.25rem; margin: .8rem 0 1.2rem; }
+  .img { background-repeat: no-repeat; background-size: contain; position: absolute; pointer-events: none; }
+  .btn {
+    display: inline-block; cursor: pointer; text-decoration: none; border: 0;
+    background: var(--wine); color: #fff; font-family: "Cinzel", serif; letter-spacing: .06em;
+    padding: .75rem 1.8rem; border-radius: 999px; font-size: .85rem; margin-top: 1rem;
+    box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  }
+  .link { color: var(--tan); text-decoration: underline; font-size: .95rem; display: inline-block; margin-top: .8rem; }
+  .lang { color: inherit; font-size: .9rem; text-decoration: none; border: 1px solid currentColor; border-radius: 999px; padding: .25rem .8rem; display: inline-block; margin-top: 1rem; }
+  .gate .lang { position: absolute; top: 14px; right: 14px; margin: 0; z-index: 3; color: var(--wine); background: rgba(255,255,255,.4); }
+
+  /* GATE */
+  .gate { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #f7e3cd 0%, #f0c9b0 55%, #e6b08f 100%); transition: opacity 1s, transform 1s; }
+  .gate.open { opacity: 0; transform: scale(1.08); pointer-events: none; }
+  .petal { position: absolute; top: -30px; color: #d9627a; font-size: 1.4rem; opacity: .7; animation: fall 9s linear infinite; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+  .gate-card { position: relative; width: min(88vw, 430px); background: #fbeedd; border: 1px solid rgba(185,138,62,.5); border-radius: 8px; padding: 2.2rem 1.5rem 2rem; box-shadow: 0 20px 50px rgba(100,14,27,.25); overflow: hidden; }
+  .corner { width: 130px; height: 130px; }
+  .corner.tl { top: 0; left: 0; }
+  .corner.br { bottom: 0; right: 0; transform: rotate(180deg); }
+  .heart { width: 50px; height: 50px; line-height: 50px; margin: 0 auto 1rem; border-radius: 50%; background: var(--wine); color: #fff; font-size: 1.3rem; }
+  .small-names { font-family: "Pinyon Script", cursive; color: var(--pink); font-size: 2rem; line-height: 1.2; }
+  .small-names i { font-size: 1.2rem; }
+  .rule { display: flex; align-items: center; justify-content: center; gap: .6rem; color: var(--gold); margin: .6rem 0; }
+  .rule i { height: 1px; width: 45px; background: var(--gold); }
+  .date-s { color: var(--pink); font-size: 1.15rem; margin-bottom: 1.1rem; }
+  .invites { font-size: 1.1rem; }
+  .chip { display: inline-block; margin: .6rem 0; padding: .4rem 1rem; border-radius: 8px; background: rgba(100,14,27,.08); color: var(--pink); font-weight: 500; font-size: 1.2rem; }
+  .celebrate { font-size: 1rem; }
+
+  /* HERO */
+  .hero { position: relative; min-height: 880px; height: 100vh; max-height: 1000px; overflow: hidden; }
+  .hero .bells { top: 0; left: 6%; width: 120px; height: 200px; background-position: top left; }
+  .hero .bougain { top: 0; right: 0; width: 56%; height: 45%; background-position: top right; }
+  .hero .palace { bottom: 0; left: 0; width: 100%; height: 52%; background-position: bottom center; background-size: cover; }
+  .arch { position: absolute; top: 12%; left: 50%; width: 70%; transform: translateX(-50%); }
+  .emblem { position: absolute; top: 24%; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 3.2rem; line-height: 1; }
+  .big-names { position: absolute; top: 40%; left: 0; right: 0; font-size: clamp(2.4rem, 11vw, 3.4rem); line-height: 1.2; z-index: 2; }
+  .big-names span, .big-names em { display: block; }
+  .big-names em { font-size: 1.5rem; }
+
+  /* SECTIONS */
+  .sec { position: relative; padding: 3.2rem 1.5rem; }
+  .sec > *:not(.img) { position: relative; z-index: 2; }
+  .info { padding-top: 2.5rem; }
+  .info .palace-bg { inset: 0; background-size: cover; background-position: center; opacity: .18; }
+  .flower-l { left: 0; top: 30%; width: 28%; height: 40%; background-position: left center; }
+  .flower-r { right: 0; top: 55%; width: 28%; height: 40%; background-position: right center; }
+  .head { display: flex; align-items: flex-start; justify-content: space-between; padding: 0 .5rem; }
+  .corner-o { width: 60px; height: 60px; }
+  .corner-o.r { transform: scaleX(-1); }
+  .flourish { width: 180px; height: 36px; display: block; margin: 0 auto; }
+  .flourish.mt { margin-top: 2.5rem; }
+  .parents { display: grid; grid-template-columns: 1fr 1fr; margin: .5rem 0 1.5rem; font-size: .85rem; }
+  .parents div:first-child { border-right: 1px solid rgba(185,138,62,.6); }
+  .parents b { color: var(--pink); font-size: .75rem; display: block; }
+  .together { color: var(--pink); font-size: 1.1rem; margin-bottom: 1.4rem; letter-spacing: .03em; }
+  .serif-name { font-size: 2.6rem; color: var(--pink); line-height: 1.2; }
+  .amp { font-size: 1.8rem; color: var(--pink); margin: .6rem 0; }
+  .event { margin-top: 2.2rem; }
+  .ev-title { font-size: 1.15rem; text-transform: uppercase; }
+  .ev-venue { font-size: 1.15rem; margin: .1rem 0 .7rem; }
+  .ev-at { font-size: .8rem; margin-bottom: .6rem; }
+  .ev-date { display: flex; align-items: center; justify-content: center; gap: .7rem; font-size: .9rem; margin: .4rem 0; }
+  .ev-date i { width: 1px; height: 22px; background: var(--tan); }
+  .ev-date strong { font-size: 2.1rem; color: var(--pink); font-weight: 500; }
+  .ev-year { color: var(--tan); font-size: 1.15rem; margin-bottom: .4rem; }
+  .sub-h { font-family: "Cinzel", serif; color: var(--pink); font-weight: 700; margin: 1rem 0 1.2rem; font-size: 1rem; }
+  .time-big { font-size: 1.7rem; margin-bottom: .6rem; }
+  .two-times { display: flex; justify-content: center; gap: 1.5rem; margin: 1.2rem 0; }
+  .two-times small { display: block; font-size: .7rem; letter-spacing: .08em; }
+  .two-times b { color: var(--pink); font-weight: 500; font-size: 1.15rem; }
+  .cd-label { margin-top: 1.5rem; letter-spacing: .08em; }
+  .cd { font-size: 1.05rem; margin-bottom: 1.5rem; }
+
+  /* CALENDAR */
+  .cal { width: min(86%, 340px); margin: 0 auto 1rem; padding: 1.5rem 1rem; border: 1.5px solid var(--gold); outline: 1px solid rgba(185,138,62,.4); outline-offset: 4px; }
+  .cal-title { font-family: "Cinzel", serif; color: var(--pink); font-weight: 700; margin-bottom: .8rem; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: .5rem 0; font-size: .85rem; color: var(--pink); }
+  .cal-grid .dow { font-size: .7rem; opacity: .7; }
+  .cal-grid .day.on { background: var(--pink); color: #fff; border-radius: 50%; width: 26px; height: 26px; line-height: 26px; margin: 0 auto; font-weight: 700; }
+
+  /* GALLERY */
+  .cf { position: relative; height: 380px; perspective: 1000px; margin: 1rem 0 .5rem; }
+  .cf-item { position: absolute; top: 0; left: 50%; width: 54%; height: 100%; margin-left: -27%; border-radius: 14px; background: #d9b99a center/cover; transition: transform .5s, opacity .5s; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .cf-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 40; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(100,14,27,.85); color: #fff; font-size: 1.3rem; cursor: pointer; }
+  .cf-btn.l { left: 4%; } .cf-btn.r { right: 4%; }
+  .count-s { font-size: .8rem; opacity: .7; }
+
+  /* VENUE */
+  .venue-h { margin-bottom: .6rem; }
+  .v-name { font-size: 1.05rem; }
+  .v-city { font-size: .95rem; margin-bottom: 1rem; }
+  .map { width: 100%; height: 280px; border: 0; border-radius: 10px; filter: sepia(.4) saturate(.8); }
+  .swatches { display: flex; gap: 1rem; justify-content: center; }
+  .swatches span { width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); }
+
+  /* TIMELINE */
+  .timeline { list-style: none; max-width: 340px; margin: 0 auto; position: relative; text-align: left; }
+  .timeline::before { content: ""; position: absolute; left: 70px; top: 6px; bottom: 6px; width: 2px; background: rgba(100,14,27,.25); }
+  .timeline li { display: grid; grid-template-columns: 62px 18px 1fr; align-items: center; gap: 0 4px; padding: .55rem 0; font-size: .9rem; }
+  .timeline time { text-align: right; }
+  .timeline i { width: 9px; height: 9px; border-radius: 50%; background: var(--wine); justify-self: center; position: relative; z-index: 1; }
+
+  /* GUESTBOOK */
+  .gb { max-width: 340px; margin: 0 auto; display: flex; flex-direction: column; gap: .8rem; }
+  .gb input, .gb textarea { background: rgba(255,255,255,.4); border: 1px solid rgba(100,14,27,.35); border-radius: 4px; color: var(--tan); padding: .7rem; font: inherit; }
+  .gb input::placeholder, .gb textarea::placeholder { color: rgba(107,59,42,.6); }
+  footer { padding: 2.5rem 1rem; background: var(--wine); color: #f7e3cd; font-style: italic; }
+  footer .lang { font-style: normal; }
+
+  /* MUSIC TOGGLE */
+  .music { position: fixed; right: 16px; bottom: 16px; z-index: 40; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--wine); color: #fff; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+  .music.off { opacity: .55; }
+  .music.off::after { content: ""; position: absolute; left: 10px; right: 10px; top: 50%; height: 2px; background: #fff; transform: rotate(-35deg); }
+
+  /* KANNADA: Latin fonts have no Kannada glyphs; letter-spacing breaks conjuncts */
+  html[lang="kn"] body, html[lang="kn"] body * { font-family: "Noto Serif Kannada", serif !important; letter-spacing: 0 !important; text-transform: none !important; }
+  html[lang="kn"] body { line-height: 1.7; }
+  html[lang="kn"] .script { font-weight: 700; }
+  html[lang="kn"] .big-names { font-size: clamp(2rem, 9vw, 2.8rem); }
+  html[lang="kn"] .small-names { font-size: 1.7rem; }
+  html[lang="kn"] .serif-name { font-size: 1.8rem; font-weight: 600; }
+  html[lang="kn"] .ev-date { font-size: .85rem; }
+  html[lang="kn"] .emblem, html[lang="kn"] .cf-btn, html[lang="kn"] .music, html[lang="kn"] .petal, html[lang="kn"] .heart { font-family: "EB Garamond", serif !important; }
+</style>
